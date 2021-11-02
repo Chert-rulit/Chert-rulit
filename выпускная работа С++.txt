@@ -1,0 +1,554 @@
+/*Создайте приложение «Список дел». Приложение должно позволять:
+■■ Добавление дел.
+У дела есть:
+• название;
+• приоритет;
+• описание;
+• дата, время исполнения.
+■■ Удаление дел.
+■■ Редактирование дел.
+■■ Поиск дел по:
+• названию;
+• приоритету;
+• описанию;
+• дате и времени исполнения.
+■■ Отображение списка дел:
+• на день;
+• на неделю;
+• на месяц.
+■■ При отображении должна быть возможность сортировки:
+• по приоритету;
+• по дате и времени исполнения.*/
+
+#define _CRT_SECURE_NO_WARNINGS // что бы дала программа работать с localtime
+#include <iostream>
+#include <vector>
+#include <string>
+#include <iomanip> // для чисел после точки
+#include <algorithm>
+
+struct List
+{
+	std::string name;
+	int priority;
+	std::string details;
+	int date;
+	int month;
+	int year;
+	double hour;
+
+	List()
+	{
+		name = " Name ";
+		priority = 0;
+		details = " nothing ";
+		date = 0;
+		month = 0;
+		year = 0;
+		hour = 0.0;
+	}
+
+	void redact()
+	{
+		std::cout << "Name: ";
+		std::cin.ignore(100, '\n');
+		getline(std::cin, name);
+		std::cout << "Priority from 1  to 5 (1 - unimportantly, 5 - important): ";
+		std::cin >> priority;
+		std::cout << "Details: ";
+		std::cin.ignore(100, '\n');
+		getline(std::cin, details);
+		std::cout << "Date: ";
+		std::cin >> date;
+		std::cout << "Month: ";
+		std::cin >> month;
+		std::cout << "Year: ";
+		std::cin >> year;
+		std::cout << "Hour: ";
+		std::cin >> hour;
+		std::cout << std::endl;
+	}
+
+	void print()
+	{
+		std::cout << name << " ";
+		std::cout << priority << " ";
+		std::cout << details << " ";
+		std::cout << date << " ";
+		std::cout << month << " ";
+		std::cout << year << " ";
+		std::cout << hour << " ";
+		std::cout << std::endl;
+	}
+
+	~List()
+	{
+
+	}
+};
+
+
+void show_vec(std::vector <List> list_vec);
+int jdn_fantastic(int day, int month, int year);  // обработки дней по юлианскому календарю
+void show_pri(std::vector <List> list_vec, int pri_or_hour);  // функция сортировки приоритета или времени
+void if_count(int count);
+
+
+
+
+int main()
+{
+	setlocale(0, "rus");
+	int main_choice = 500, quant_deal;
+	int interv = 500;
+	int  count = 0;
+	int search_date, search_month, search_year;
+	double search_hour;
+	std::string serch_name;
+	std::string det_searc;
+	int jdn_local, jdn_week, jdn_month; // переменные для юлианского календаря
+	int day, month, year; // переменные для локального времени
+	time_t now = time(0); // работа с локальным временем
+	tm* ltm = localtime(&now);
+
+	List buff_list;  //создали пустой обьект 
+	std::vector <List> list_vec, list_vec2, list_vec3;
+	std::cout << "Quantity of deal to create: ";
+	std::cin >> quant_deal;
+
+	for (int i = 0; i < quant_deal; i++)  //записываем студента где то и добавляем его в вектор
+	{
+		buff_list.redact();
+		list_vec.push_back(buff_list); // и кладем этого студента в вектор
+	}
+
+	while (main_choice != 0)
+	{
+		std::cout << std::endl;
+		std::cout << "1 - Add:  \n";
+		std::cout << "2 - Delete: \n";
+		std::cout << "3 - Redact: \n";
+		std::cout << "4 - Search: \n";
+		std::cout << "5 - Show by:  \n";
+		std::cout << "6 - Show all:  \n";
+		std::cout << "0 - Exit. \n";
+		std::cin >> main_choice;
+
+		switch (main_choice)
+		{
+		case 1:        //************************************* ДОБАВИТЬ *******************************************************
+			int add_deal;
+			std::cout << "Quantity of deal to add: ";
+			std::cin >> add_deal;
+
+			for (int i = 0; i < add_deal; i++)
+			{
+				buff_list.redact();                       //записываем дело где-то 
+				list_vec.push_back(buff_list);           // и кладем его в вектор
+			}
+			break;
+
+		case 2:      //************************************* УДАЛИТЬ *******************************************************
+			int del_deal;
+			std::cout << "Number of deal you want to delete: ";
+			std::cin >> del_deal;
+			std::cout << "Deal № " << del_deal << " deleted. \n";
+			del_deal = del_deal - 1; // потому что отсчет от 0
+			list_vec.erase(list_vec.begin() + del_deal);
+
+			break;
+
+		case 3:       //************************************* РЕДАКТИРОВАТЬ *******************************************************
+			int red, part_red;
+			std::cout << "Number of deal you want to redact: \n";
+			std::cin >> red;
+			red = red - 1;
+
+			std::cout << "What do you want to redact: \n";
+			std::cout << "1 - Name: \n";
+			std::cout << "2 - Priority: \n";
+			std::cout << "3 - Details: \n";
+			std::cout << "4 - Date: \n";
+			std::cout << "5 - Time: \n";
+			std::cout << "6 - Everything: \n";
+			std::cout << "7 - Return to main menu: \n";
+			std::cin >> part_red;
+
+			switch (part_red)
+			{
+			case 1:   // ***  редактирование имени  ***
+				std::cout << "Enter new name: \n";
+				std::cin.ignore(32767, '\n');
+				getline(std::cin, list_vec.at(red).name);
+				break;
+
+			case 2:   //  // ***  редактирование приоритета  ***
+				std::cout << "Enter new priority: \n";
+				std::cin >> list_vec.at(red).priority;
+				break;
+
+			case 3:   // ***  редактирование описания  ***
+				std::cout << "Enter new details: \n";
+				std::cin.ignore(32767, '\n');
+				getline(std::cin, list_vec.at(red).details);
+				break;
+
+			case 4:   // ***  редактирование даты  ***
+				std::cout << "Enter new date/month/year: \n";
+				std::cin >> list_vec.at(red).date;
+				std::cin >> list_vec.at(red).month;
+				std::cin >> list_vec.at(red).year;
+				break;
+
+			case 5:// ***  редактирование времени  ***
+				std::cout << "Enter new time: \n";
+				std::cin >> list_vec.at(red).hour;
+				break;
+
+			case 6:  // ***  редактирование полное  ***
+				std::cout << "Enter new information: \n";
+				list_vec.at(red).redact();
+				break;
+
+			default:
+				std::cout << "Invalid data. Tre again. \n";
+				break;
+
+			case 7:
+				break;
+			}
+			break;
+
+		case 4:   //*************************************   ПОИСК   *******************************************************
+
+			int serch, part_serch;
+			std::cout << "\nWhat are you looking for: \n";
+			std::cout << "1 - Name: \n";
+			std::cout << "2 - Priority: \n";
+			std::cout << "3 - Details: \n";
+			std::cout << "4 - Date: \n";
+			std::cout << "5 - Time: \n";
+			std::cout << "7 - Return to main menu: \n";
+			std::cin >> part_serch;
+
+			switch (part_serch)
+			{
+			case 1:   // ***  поиск по имени  ***
+
+				std::cout << "Enter name for search: \n";
+				std::cin >> serch_name;
+				std::cout << "Your found case: \n";
+
+				for (int i = 0; i < list_vec.size(); i++)
+				{
+					if (serch_name == list_vec.at(i).name)
+					{
+						list_vec.at(i).print();
+						count++;
+					}
+				}
+				if_count(count); // усли count остался нулевым, покажется сообщение
+				break;
+
+			case 2:   // ***  поиск по приоритету  ***
+				int pri;
+				std::cout << "Enter priority value for serch: ";
+				std::cin >> pri;
+
+				std::cout << "Your found case: \n";
+
+				for (int i = 0; i < list_vec.size(); i++)
+				{
+					if (pri == list_vec.at(i).priority)
+					{
+						list_vec.at(i).print();
+						count++;
+					}
+				}
+				if_count(count); // усли count остался нулевым, покажется сообщение
+				break;
+
+			case 3:   // ***  поиск по описанию  ***
+				std::cout << "Enter word for searcn in details: ";
+				std::cin >> det_searc;
+				std::cout << "Your found case: \n";
+				for (int i = 0; i < list_vec.size(); i++)
+				{
+					int pos = list_vec.at(i).details.find(det_searc); // поиск
+					if (pos == -1)
+						std::cout << "Not found. \n";
+					else
+						list_vec.at(i).print();
+				}
+				break;
+
+			case 4:   // ***  поиск по дате  ***
+				std::cout << "Enter date of deal: ";
+				std::cin >> search_date;
+				count = 0;
+				for (int i = 0; i < list_vec.size(); i++)
+				{
+					if (search_date == list_vec.at(i).date)
+					{
+						list_vec2.push_back(list_vec.at(i));
+						count++;
+					}
+				}
+				std::cout << "Your found case: \n";
+				show_vec(list_vec2);
+				if_count(count); // усли count остался нулевым, покажется сообщение
+				std::cout << "Enter month of deal: ";
+				std::cin >> search_month;
+				count = 0;
+
+				for (int i = 0; i < list_vec2.size(); i++)
+				{
+					if (search_month == list_vec2.at(i).month)
+					{
+						list_vec3.push_back(list_vec2.at(i));
+						count++;
+					}
+				}
+				std::cout << "Your found case: \n";
+				show_vec(list_vec3);
+				if_count(count); // усли count остался нулевым, покажется сообщение
+
+				list_vec2.clear();    // очищаем второй от чисел
+
+				std::cout << "Enter year of deal: ";
+				std::cin >> search_year;
+				count = 0;
+				for (int i = 0; i < list_vec3.size(); i++)
+				{
+					if (search_year == list_vec3.at(i).year)
+					{
+						list_vec2.push_back(list_vec3.at(i));
+						count++;
+					}
+				}
+				std::cout << "Your found case: \n";
+				show_vec(list_vec2);
+				if_count(count); // усли count остался нулевым, покажется сообщение
+				list_vec3.clear();    // очищаем третий от чисел
+
+				std::cout << "Enter time of deal: ";
+				std::cin >> search_hour;
+				count = 0;
+				for (int i = 0; i < list_vec2.size(); i++)
+				{
+					if (search_hour == list_vec2.at(i).hour)
+					{
+						list_vec3.push_back(list_vec2.at(i));
+						count++;
+					}
+				}
+				std::cout << "Your found case: \n";
+				show_vec(list_vec3);
+				if_count(count); // усли count остался нулевым, покажется сообщение
+				list_vec2.clear();    // очищаем второй от чисел
+				break;
+
+			case 5:// ***  поиск по времени  ***
+				std::cout << "Enter time for search: \n";
+				std::cin >> search_hour;
+
+				std::cout << "Your found case: \n";
+				for (int i = 0; i < list_vec.size(); i++)
+				{
+					if (search_hour == list_vec.at(i).hour)
+					{
+						list_vec.at(i).print();
+						count++;
+					}
+				}
+				if_count(count); // усли count остался нулевым, покажется сообщение
+				break;
+
+			default:
+				std::cout << "Invalid data. Tre again. \n";
+				break;
+
+			case 7:
+				break;
+			}
+			break;
+
+		case 5:    //************************************* ПОКАЗАТЬ  *******************************************************
+
+
+			std::cout << "\nLocal data: ";
+			std::cout << ltm->tm_mday << " " << 1 + ltm->tm_mon << " " << 1900 + ltm->tm_year << "\n";
+
+			day = ltm->tm_mday;
+			month = 1 + ltm->tm_mon;
+			year = 1900 + ltm->tm_year;
+
+			while (interv != 0)
+			{
+				std::cout << "\nSelect  time interval: \n day - 1 \n week - 2 \n month - 3 \n return to main menu - 0 \n ";
+				std::cin >> interv;
+
+				int pri_or_hour;
+				List save;
+
+				switch (interv)
+				{
+				case 1: // кейс интервала дел на день
+					std::cout << "Sort by: \n time  = 1 \n priority = 2\n";
+					std::cin >> pri_or_hour;
+					for (int i = 0; i < list_vec.size(); i++)
+					{
+						if (day == list_vec.at(i).date && month == list_vec.at(i).month && year == list_vec.at(i).year)
+						{
+							list_vec2.push_back(list_vec.at(i));
+						}
+					}
+					show_pri(list_vec2, pri_or_hour);
+
+					count++;
+					if_count(count); // усли count остался нулевым, покажется сообщение
+					list_vec2.clear();
+					break;
+
+				case 2:  // кейс интервала дел на неделю
+					jdn_local = jdn_fantastic(day, month, year);
+					jdn_week = jdn_fantastic(day, month, year) + 7;
+
+					std::cout << "Sort by: \n time  = 1 \n priority = 2\n";
+					std::cin >> pri_or_hour;
+
+					for (int i = 0; i < list_vec.size(); i++)
+					{
+						if (jdn_local <= jdn_fantastic(list_vec.at(i).date, list_vec.at(i).month, list_vec.at(i).year) &&
+							jdn_fantastic(list_vec.at(i).date, list_vec.at(i).month, list_vec.at(i).year) < jdn_week)
+						{
+							list_vec2.push_back(list_vec.at(i));
+						}
+					}
+					show_pri(list_vec2, pri_or_hour);
+
+					count++;
+					if_count(count); // усли count остался нулевым, покажется сообщение
+					list_vec2.clear();
+					break;
+
+				case 3:   // кейс интервала дел на месяц
+					jdn_local = jdn_fantastic(day, month, year);
+					jdn_month = jdn_fantastic(day, month, year) + 30;
+					std::cout << "Sort by: \n time  = 1 \n priority = 2\n";
+					std::cin >> pri_or_hour;
+
+					for (int i = 0; i < list_vec.size(); i++)
+					{
+						if (jdn_local <= jdn_fantastic(list_vec.at(i).date, list_vec.at(i).month, list_vec.at(i).year) &&
+							jdn_fantastic(list_vec.at(i).date, list_vec.at(i).month, list_vec.at(i).year) < jdn_month)
+						{
+							list_vec2.push_back(list_vec.at(i));
+						}
+					}
+					show_pri(list_vec2, pri_or_hour);
+
+					count++;
+					if_count(count); // усли count остался нулевым, покажется сообщение
+					list_vec2.clear();
+					break;
+
+				default:
+					std::cout << "Error. Try again.\n";
+					break;
+
+				case 0:
+					break;
+				}
+			}
+			break;
+		case 6:
+			show_vec(list_vec);
+			break;
+
+		default:
+			std::cout << "Invalid data. Try again. \n";
+			break;
+
+		case 0:
+			exit(0);
+		}
+	}
+	return 0;
+}
+
+void show_vec(std::vector <List> list_vec)
+{
+	std::cout << "\nList of deal: \n";
+	for (int i = 0; i < list_vec.size(); i++)
+	{
+		std::cout << i + 1 << " ";
+		list_vec.at(i).print();
+	}
+}
+
+
+int jdn_fantastic(int day, int month, int year)
+{
+	int a = (14 - month) / 12;
+	int  y = year + 4800 - a;
+	int  m = month + 12 * a - 3;
+	int  jdn = day + (153 * m + 2) / 5 + 365 * y + y / 4 - y / 100 + y / 400 - 32045;
+	return jdn;
+}
+
+
+void show_pri(std::vector <List> list_vec, int pri_or_hour)
+{
+	List save;
+	if (pri_or_hour == 1)
+	{
+		for (int i = 0; i < list_vec.size(); i++)
+		{
+			for (int j = i + 1; j < list_vec.size(); j++)
+			{
+				if (list_vec.at(i).hour > list_vec.at(j).hour)
+				{
+					save = list_vec.at(i);
+					list_vec.at(i) = list_vec.at(j);
+					list_vec.at(j) = save;
+				}
+			}
+		}
+		for (int i = 0; i < list_vec.size(); i++)
+		{
+			list_vec.at(i).print();
+		}
+	}
+	if (pri_or_hour == 2)
+	{
+		for (int i = 0; i < list_vec.size(); i++)
+		{
+			for (int j = i + 1; j < list_vec.size(); j++)
+			{
+				if (list_vec.at(i).priority > list_vec.at(j).priority)
+				{
+					save = list_vec.at(i);
+					list_vec.at(i) = list_vec.at(j);
+					list_vec.at(j) = save;
+				}
+			}
+		}
+		for (int i = 0; i < list_vec.size(); i++)
+		{
+			list_vec.at(i).print();
+		}
+	}
+	if (pri_or_hour != 1 && pri_or_hour != 2)
+	{
+		std::cout << "\nInvalid data. \n";
+	}
+}
+
+void if_count(int count)
+{
+	if (count == 0)
+	{
+		std::cout << "No matches \n";
+	}
+}
